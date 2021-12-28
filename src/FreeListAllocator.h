@@ -5,11 +5,11 @@
 
 class FreeListAllocator : public Allocator {
 public:
-    explicit FreeListAllocator(size_t size);
+    FreeListAllocator(size_t size);
     void* allocate(std::size_t new_size) override;
     void deallocate(void* ptr) override;
     void reset();
-    Header *find_block(size_t size);
+    Allocator::Header *find_block(size_t size);
 private:
     void merge(Header *header);
 };
