@@ -3,9 +3,6 @@
 #include "FreeListAllocator.h"
 #include "Benchmark.h"
 #include "BinaryAllocator.h"
-//#include <benchmark/benchmark.h>
-//#include <chrono>
-
 using namespace std;
 
 /**
@@ -19,11 +16,9 @@ using namespace std;
 
 int main(){
 	try{
-	    size_t B = 1e8;
+	    size_t size = 1e8;
 	    vector<std::size_t> allocations {32, 64, 256, 512, 1024, 2048, 4096};
-
-	    Allocator * freeListAllocator = new FreeListAllocator(B);
-
+	    Allocator * freeListAllocator = new FreeListAllocator(size);
 	    Benchmark benchmark(OPERATIONS);
 	    cout << "FreeListAllocator:" << endl;
 	    benchmark.MultipleAllocation(freeListAllocator, allocations);
@@ -34,18 +29,15 @@ int main(){
 		cout << err.what() << endl;
 	}
 	try{
-	    size_t B = 1e8;
+	    size_t size = 1e8;
 	    vector<std::size_t> allocations {32, 64, 256, 512, 1024, 2048, 4096};
-
-	    Allocator * binaryAllocator = new BinaryAllocator(B);
-
+	    Allocator * binaryAllocator = new BinaryAllocator(size);
 	    Benchmark benchmark(OPERATIONS);
 	    cout << "BinaryAllocator:" << endl;
 	    benchmark.MultipleAllocation(binaryAllocator, allocations);
 	    benchmark.MultipleFree(binaryAllocator, allocations);
 	    benchmark.RandomAllocation(binaryAllocator, allocations);
 	    benchmark.RandomFree(binaryAllocator, allocations);    
-	    return 0;
 	} catch(runtime_error& err){
 		cout << err.what() << endl;
 	}
