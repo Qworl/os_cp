@@ -24,8 +24,7 @@ public:
     };
     virtual void* allocate(size_t size) = 0;
     virtual void deallocate(void* ptr) = 0;
-    void free();
-    virtual Header *find_block(size_t size) = 0;
+    Header *find_block(size_t size);
     void split(Header *header, size_t chunk);
     bool validate(void *ptr);
     virtual void reset() = 0;
