@@ -12,7 +12,6 @@ public:
     BinaryAllocator(size_t new_size);
     void* allocate(size_t new_size) override;
     void deallocate(void* ptr) override;
-    Allocator::Header *find_block(size_t size);
     void reset();
 };
 
