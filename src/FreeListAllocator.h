@@ -9,7 +9,6 @@ public:
     void* allocate(std::size_t new_size) override;
     void deallocate(void* ptr) override;
     void reset();
-    Allocator::Header *find_block(size_t size);
 private:
     void merge(Header *header);
 };
