@@ -5,14 +5,11 @@ using namespace std;
 
 FreeListAllocator::FreeListAllocator(size_t size) {
     if (buffer_begin != nullptr) {
-        ::free(buffer_begin);
+        free(buffer_begin);
         buffer_begin = nullptr;
     }
     buffer_begin = malloc(size);
-    if (buffer_begin == nullptr) {
-        std::cerr << "Failed to allocate memory\n";
-        return;
-    }
+    if (buffer_begin == nullptr) throw runtime_error("Failed to allocate memory.");
     total_size = size;
     buffer_end = (void*)((char*)(buffer_begin) + total_size);
     auto *header = (Header *) buffer_begin;
@@ -32,15 +29,6 @@ void* FreeListAllocator::allocate(std::size_t new_size) {
     return header + 1; //find_block returns header*
 }
 
-Allocator::Header *FreeListAllocator::find_block(size_t size) {
-    auto *header = static_cast<Header *>(buffer_begin);
-    while (!header->is_free || header->size < size) {
-        header = header->next();
-        if (header >= buffer_end) { return nullptr; }
-    }
-    return header;
-}
-
 void FreeListAllocator::deallocate(void* ptr) {
     if (!validate(ptr)) return; // if address is not valid 
     auto *header = (Header*)ptr - 1;
@@ -50,7 +38,18 @@ void FreeListAllocator::deallocate(void* ptr) {
 }
 
 void FreeListAllocator::reset() {
-    FreeListAllocator(this->total_size);
+    if (buffer_begin != nullptr) {
+        free(buffer_begin);
+        buffer_begin = nullptr;
+    }
+    buffer_begin = malloc(total_size);
+    if (buffer_begin == nullptr) throw runtime_error("Failed to allocate memory.");
+    buffer_end = (void*)((char*)(buffer_begin) + total_size);
+    auto *header = (Header *) buffer_begin;
+    header->is_free = true;
+    header->size = (total_size - sizeof(Header));
+    used_size = sizeof(Header);
+    peak_size = used_size;
 }
 
 void FreeListAllocator::merge(Header *header) {
