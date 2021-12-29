@@ -10,16 +10,15 @@ size_t BinaryAllocator::align(size_t size) { // closest next power of 2
     while (i < size){
         i *= 2; ++k;
     }
-    return k - 1;
+    return i / 2;
 }
 
 BinaryAllocator::BinaryAllocator(size_t new_size) {
     if (buffer_begin != nullptr) {
-        ::free(buffer_begin);
+        free(buffer_begin);
         buffer_begin = nullptr;
     }
-    size_t k = align(new_size);
-    total_size = pow(2, k + 1);
+    total_size = align(new_size) * 2;
     buffer_begin = malloc(total_size);
     if (buffer_begin == nullptr) throw runtime_error("Failed to allocate memory.");
     buffer_end = (void*)((char*)(buffer_begin) + total_size);
@@ -28,28 +27,11 @@ BinaryAllocator::BinaryAllocator(size_t new_size) {
     header->size = total_size - sizeof(Header);
     used_size = sizeof(Header);
     peak_size = used_size;
-    /*long long size_tmp = total_size;
-    while(size_tmp > 0){
-        for(size_t i = k; i > 0; --i){
-            size_t cur = pow(2,i);
-            if(size_tmp >= cur + sizeof(Header)){
-                split(header, cur);//- sizeof(Header));
-                header->is_free = true;
-                header = header->next();
-                size_tmp -= cur + sizeof(Header);// + sizeof(Header);
-                peak_size += cur + sizeof(Header);// + sizeof(Header);
-            } else if (i == 1){
-                return;
-            }
-        }
-    }*/
-    used_size = peak_size;
 }
 
 void* BinaryAllocator::allocate(size_t new_size) {
     if (new_size == 0) throw runtime_error("Size must be bigger than 0.");
-    size_t k = align(new_size);
-    size_t size = pow(2, k + 1);
+    size_t size = align(new_size) * 2;
     if (size > total_size - used_size) throw runtime_error("Not enough memory.");
     auto *header = find_block(size);
     if (header == nullptr) throw runtime_error("No required blocks.");
@@ -66,19 +48,17 @@ void BinaryAllocator::deallocate(void* ptr) {
     used_size -= header->size;
 }
 
-Allocator::Header *BinaryAllocator::find_block(size_t size){
-    if(size > total_size) return nullptr;
-    auto *header = (Header *)(buffer_begin);
-    while(header < buffer_end){
-        if((header->size >= size) && (header->is_free)){
-            header->is_free = false;
-            return header;    
-        }
-        header = header->next();
-    }
-    return nullptr;
-}
-
 void BinaryAllocator::reset() {
-    BinaryAllocator(this->total_size);
+    if (buffer_begin != nullptr) {
+        free(buffer_begin);
+        buffer_begin = nullptr;
+    }
+    buffer_begin = malloc(total_size);
+    if (buffer_begin == nullptr) throw runtime_error("Failed to allocate memory.");
+    buffer_end = (void*)((char*)(buffer_begin) + total_size);
+    auto *header = (Header *) buffer_begin;
+    header->is_free = true;
+    header->size = total_size - sizeof(Header);
+    used_size = sizeof(Header);
+    peak_size = used_size;
 }
